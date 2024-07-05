@@ -14,6 +14,10 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+app.use((error, req, res, next) => {
+  res.status(res.status || 500).send({ error: error.message });
+});
+
 app.post("/api/customer", async (req, res) => {
   const response = await createCustomer(req.body);
   res.send(response);
@@ -52,7 +56,7 @@ app.delete(
   async (req, res, next) => {
     try {
       await destroyReservation({
-        customer_id: req.params.user_id,
+        customer_id: req.params.customer_id,
         id: req.params.id,
       });
       res.sendStatus(204);
@@ -83,40 +87,59 @@ const init = async () => {
   console.log("connected to database");
   await createTables();
   console.log("created tables");
-  //   const [moe, lucy, larry, ethyl, paris, london, nyc] = await Promise.all([
-  //     createCustomer({ name: "moe" }),
-  //     createCustomer({ name: "lucy" }),
-  //     createCustomer({ name: "larry" }),
-  //     createCustomer({ name: "ethyl" }),
-  //     createRestaurant({ name: "paris" }),
-  //     createRestaurant({ name: "london" }),
-  //     createRestaurant({ name: "nyc" }),
-  //   ]);
+  const [
+    Wade_Wilson,
+    Steve_Rogers,
+    Bucky_Barnes,
+    Tony_Stark,
+    Los_Pollos_Hermanos,
+    Gusteaus,
+    Mos_Eisley_Cantina,
+  ] = await Promise.all([
+    createCustomer({ name: "Wade_Wilson" }),
+    createCustomer({ name: "Steve_Rogers" }),
+    createCustomer({ name: "Bucky_Barnes" }),
+    createCustomer({ name: "Tony_Stark" }),
+    createRestaurant({ name: "Los_Pollos_Hermanos" }),
+    createRestaurant({ name: "Gusteaus" }),
+    createRestaurant({ name: "Mos_Eisley_Cantina" }),
+  ]);
   console.log(await fetchCustomers());
   console.log(await fetchRestaurants());
-  //   const [vacation, vacation2] = await Promise.all([
-  //     createVacation({
-  //       user_id: moe.id,
-  //       place_id: nyc.id,
-  //       departure_date: "02/14/2024",
-  //     }),
-  //     createVacation({
-  //       user_id: moe.id,
-  //       place_id: nyc.id,
-  //       departure_date: "02/28/2024",
-  //     }),
-  //   ]);
+  const [reservation, reservation2, reservation3] = await Promise.all([
+    createReservation({
+      date: "02/14/2024",
+      party_count: 4,
+      customer_id: Steve_Rogers.id,
+      restaurant_id: Gusteaus.id,
+    }),
+    createReservation({
+      date: "07/26/2024",
+      party_count: 4,
+      customer_id: Wade_Wilson.id,
+      restaurant_id: Los_Pollos_Hermanos.id,
+    }),
+    createReservation({
+      date: "03/14/2024",
+      party_count: 2,
+      customer_id: Tony_Stark.id,
+      restaurant_id: Mos_Eisley_Cantina.id,
+    }),
+  ]);
   console.log(await fetchReservations());
-  //   await destroyVacation({ id: vacation.id, user_id: vacation.user_id });
-  //   console.log("New list of reservations", await fetchreservations());
+  await destroyReservation({
+    id: reservation.id,
+    user_id: reservation.customer_id,
+  });
+  console.log("New list of reservations", await fetchReservations());
 
   const port = process.env.PORT || 3001;
   app.listen(port, () => {
     console.log(`listening on port ${port}`);
-    console.log("some curl commands to test");
-    console.log(`curl localhost:${port}/api/customers`);
-    console.log(`curl localhost:${port}/api/restaurants`);
-    console.log(`curl localhost:${port}/api/reservations`);
+    // console.log("some curl commands to test");
+    // console.log(`curl localhost:${port}/api/customers`);
+    // console.log(`curl localhost:${port}/api/restaurants`);
+    // console.log(`curl localhost:${port}/api/reservations`);
   });
 };
 

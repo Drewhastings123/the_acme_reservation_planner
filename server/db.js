@@ -1,10 +1,13 @@
 const pg = require("pg");
 const uuid = require("uuid");
 
-const client = new pg.Client(process.env.DATABASE_URL || "postgres://localhost/the_acme_reservation_planner");
+const client = new pg.Client(
+  process.env.DATABASE_URL ||
+    "postgres://localhost/the_acme_reservation_planner"
+);
 
 const createTables = async () => {
-    const SQL = `
+  const SQL = `
       DROP TABLE IF EXISTS reservations;
       DROP TABLE IF EXISTS customers;
       DROP TABLE IF EXISTS restaurants;
@@ -25,76 +28,80 @@ const createTables = async () => {
       );
   
       `;
-    await client.query(SQL);
-  };
-  
-  const createCustomer = async ({ name }) => {
-    const SQL = `
+  await client.query(SQL);
+};
+
+const createCustomer = async ({ name }) => {
+  const SQL = `
       INSERT INTO customers(id, name) VALUES($1, $2) RETURNING *
       `;
-    const response = await client.query(SQL, [uuid.v4(), name]);
-    return response.rows[0];
-  };
-  
-  const createRestaurant = async ({ name }) => {
-    const SQL = `
+  const response = await client.query(SQL, [uuid.v4(), name]);
+  return response.rows[0];
+};
+
+const createRestaurant = async ({ name }) => {
+  const SQL = `
       INSERT INTO restaurants(id, name) VALUES($1, $2) RETURNING *
       `;
-    const response = await client.query(SQL, [uuid.v4(), name]);
-    return response.rows[0];
-  };
-  
-  const createReservation = async ({ date, party_count, customer_id, restaurant_id }) => {
-    const SQL = `
-      INSERT INTO reservations(id, date, party_count, customer_id, restaurant_id) VALUES($1, $2, $3, $4) RETURNING *
+  const response = await client.query(SQL, [uuid.v4(), name]);
+  return response.rows[0];
+};
+
+const createReservation = async ({
+  date,
+  party_count,
+  customer_id,
+  restaurant_id,
+}) => {
+  const SQL = `
+      INSERT INTO reservations(id, date, party_count, customer_id, restaurant_id) VALUES($1, $2, $3, $4, $5) RETURNING *
       `;
-    const response = await client.query(SQL, [
-      uuid.v4(),
-      date,
-      party_count,
-      customer_id,
-      restaurant_id,
-    ]);
-    return response.rows[0];
-  };
-  
-  const fetchReservations = async () => {
-    const SQL = `
+  const response = await client.query(SQL, [
+    uuid.v4(),
+    date,
+    party_count,
+    customer_id,
+    restaurant_id,
+  ]);
+  return response.rows[0];
+};
+
+const fetchReservations = async () => {
+  const SQL = `
       SELECT * FROM reservations`;
-    const response = await client.query(SQL);
-    return response.rows;
-  };
-  
-  const fetchCustomers = async () => {
-    const SQL = `
+  const response = await client.query(SQL);
+  return response.rows;
+};
+
+const fetchCustomers = async () => {
+  const SQL = `
       SELECT * FROM customers`;
-    const response = await client.query(SQL);
-    return response.rows;
-  };
-  
-  const fetchRestaurants = async () => {
-    const SQL = `
+  const response = await client.query(SQL);
+  return response.rows;
+};
+
+const fetchRestaurants = async () => {
+  const SQL = `
       SELECT * FROM restaurants`;
-    const response = await client.query(SQL);
-    return response.rows;
-  };
-  
-  const destroyReservation = async ({ id, customer_id }) => {
-      console.log(id, customer_id)
-      const SQL = `
+  const response = await client.query(SQL);
+  return response.rows;
+};
+
+const destroyReservation = async ({ id, customer_id }) => {
+  console.log(id, customer_id);
+  const SQL = `
       DELETE FROM reservations WHERE id = $1 AND customer_id = $2`;
-      await client.query(SQL, [id, customer_id]);
-  }
-  
-  module.exports = {
-    client,
-    createTables,
-    createCustomer,
-    createRestaurant,
-    fetchCustomers,
-    fetchRestaurants,
-    createReservation,
-    fetchReservations,
-    destroyReservation
-  };
-  
+  await client.query(SQL, [id, customer_id]);
+};
+
+module.exports = {
+  client,
+  createTables,
+  createCustomer,
+  createRestaurant,
+  fetchCustomers,
+  fetchRestaurants,
+  createReservation,
+  fetchReservations,
+  destroyReservation,
+};
